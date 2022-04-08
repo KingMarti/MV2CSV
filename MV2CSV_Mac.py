@@ -47,13 +47,17 @@ months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 path=os.getcwd()
 setting_file=path+'\\MVSettings.ini'
 def set_config():
-    print('setting file var: ',setting_file)
+    print('Checking for settings file, please wait')
+    operating_system=sys.platform
+    if operating_system == 'darwin' or operating_system == 'linux2' or sys.platform == 'liux':
+        setting_file=path+'/MVSettings.ini'
+    elif sys.platform == 'win32' or operating_system == 'windows':
+        setting_file=path+'\\MVSettings.ini'
     if os.path.exists(setting_file):
         get_config()
     else:
         print('Now Loading First Run Setup')
         print('These settings will only be asked for on the first run.')
-        operating_system=sys.platform
         if operating_system=='darwin'or operating_system=='Darwin':
             print('Operating system is:', operating_system)
             browser='safari'
