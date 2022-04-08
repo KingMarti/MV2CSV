@@ -45,7 +45,7 @@ except ImportError:
         print('failed to install dependancies')
 months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 path=os.getcwd()
-setting_file=path+'/MVSettings.ini'
+setting_file=path+'\\MVSettings.ini'
 def set_config():
     print('setting file var: ',setting_file)
     if os.path.exists(setting_file):
@@ -59,9 +59,6 @@ def set_config():
             browser='safari'
             wdriver='y'
         elif operating_system=='windows' or operating_system=='Windows' or operating_system=='win32':
-            print('have you previously installed the solenium web driver? (y/n')
-            wdriver=input()
-            if wdriver == 'n' or wdriver == 'N' or wdriver == 'no' or wdriver =='No':
                 print('Do you have firefox installed on your system?')
                 ff=input()
                 if ff=='n' or ff=='N' or ff== 'no' or ff=='No':
@@ -77,6 +74,7 @@ def set_config():
                     browser='firefox'
         elif operating_system=='linux'or operating_system=='Linux' or operating_system=='linux2':
             browser='firefox'
+            print('linux support has not yet been implmented')
         print('Please enter your ManyVids Username')
         username=input()
         print('Please enter your Manyvids password')
@@ -99,7 +97,7 @@ def set_config():
         config['MV_Settings'] = {'username':username,'hash': cipher,'seed':seed,'2fa':fa,'browser':browser}
         with open('MVSettings.ini', 'w') as configfile:
             config.write(configfile)
-        if wdriver == 'n' or wdriver == 'N' or wdriver == 'no' or wdriver =='No' and browser == 'chrome' or browser=='firefox':
+        if browser == 'chrome' or browser=='firefox':
             cwd=os.getcwd()
             print('Getting Dependancies, Please Wait')
             get_browser()
@@ -257,6 +255,7 @@ def get_sales():
             write.writerows(sales)
             i+=1
     print('Sale Export Complete.')
+    bot.close()
 def welcome():
     print('##################################################################################')
     print('#                                                                                #')
