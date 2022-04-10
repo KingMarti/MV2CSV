@@ -304,7 +304,6 @@ def get_sales():
         bot.get(url)
     print('Collecting Sales Data For '+month)
     sales=[]
-    print('should be opening for loop')
     for row in bot.find_elements(by=By.XPATH,value='//tr[contains(@id,"earnings_video_")]'):
         cells= row.find_elements(by=By.CSS_SELECTOR,value='td')
         links = cells[1].get_attribute('innerHTML')              
@@ -327,6 +326,15 @@ def get_sales():
             sales_data=(sdate,amount,promocode,bought,username)
             sales.append(sales_data)
     print(len(sales), 'sales in list')
+    if sys.platform == 'win32':
+        user=getuser()
+        path='C:\\Users\\'+user+'\\Documents\\'
+        try:
+            print('Creating MV_Sales Directory in',path)
+            os.makedirs(path+'\MV_Sales\\')
+        except:
+            pass
+        path=path+'\\MV_Sales\\'
     with open(path+month+'_MV_Sales.csv', 'w') as f:
         write = csv.writer(f)
         write.writerow(fields)
@@ -334,7 +342,8 @@ def get_sales():
         for s in sales:
             write.writerows(sales)
             i+=1
-        print('Sale Export Complete. Csv saved to: ',path)
+    print('Sale Export Complete. Csv saved to: ',path)
+    
         
 
     bot.close()
