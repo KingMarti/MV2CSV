@@ -9,8 +9,8 @@ import zipfile
 import random
 import string
 from datetime import date
-from getpass import getpass
-
+from getpass import getpass, getuser
+import ctypes.wintypes
 try:
     from selenium import webdriver
     from selenium.webdriver.common.keys import Keys
@@ -45,13 +45,75 @@ except ImportError:
         print('failed to install dependancies')
 months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 path=os.getcwd()
-setting_file=path+'\\MVSettings.ini'
+def update_config():
+    operating_system=sys.platform
+    if operating_system == 'darwin' or operating_system == 'linux2' or operating_system == 'linux':
+        setting_file=path+'/MVSettings.ini'
+    elif operating_system == 'win32' or operating_system == 'windows':
+        setting_file=path+'\\MVSettings.ini'
+    if os.path.exists(setting_file):
+        os.remove(setting_file)
+    
+    print('Now Loading First Run Setup')
+    print('These settings will only be asked for on the first run.')
+    if operating_system=='darwin'or operating_system=='Darwin':
+        print('Operating system is:', operating_system)
+        browser='safari'
+        wdriver='y'
+    elif operating_system=='windows' or operating_system=='Windows' or operating_system=='win32':
+            print('Do you have firefox installed on your system?')
+            ff=input()
+            if ff=='n' or ff=='N' or ff== 'no' or ff=='No':
+                print('Do You have Google Chrome installed on your system?(y/n)')
+                gchome=input()
+                if gchome == 'y' or gchome == 'Y' or gchome == 'Yes' or gchome == 'yes':
+                    browser='chrome'
+                elif gchome == 'n' or gchome =='N' or gchome =='No' or gchome =='no':
+                    print('please install either google chrome or firefox to use this tool')
+                else:
+                    print('Invalid Selection')
+            elif ff =='y' or ff=='Y' or ff=='Yes' or ff=='yes':
+                browser='firefox'
+    elif operating_system=='linux'or operating_system=='Linux' or operating_system=='linux2':
+        browser='firefox'
+        print('linux support has not yet been implmented')
+    print('Please enter your ManyVids Username')
+    username=input()
+    print('Please enter your Manyvids password')
+    password=getpass()
+    print('Do You Have 2fa Enabled? (Y/N)')
+    confirm=input()
+    if confirm == "y" or confirm == 'Y' or confirm == 'yes' or confirm == 'Yes' or confirm =="YES":
+        fa=True
+    elif confirm=="no" or confirm=="No" or confirm=="N"or confirm == 'n':
+        fa=False
+    else:
+        print('Invalid Selection, Please Restrart App')
+        time.sleep(120)
+        exit()
+    char_set = string.ascii_uppercase + string.digits
+    seed=''.join(random.sample(char_set*6, 6))
+    print('Encrypting password, please wait')
+    cipher = cryptocode.encrypt(password,seed)
+    config = configparser.ConfigParser()
+    config['MV_Settings'] = {'username':username,'hash': cipher,'seed':seed,'2fa':fa,'browser':browser}
+    with open('MVSettings.ini', 'w') as configfile:
+        config.write(configfile)
+    if browser == 'chrome' or browser=='firefox':
+        cwd=os.getcwd()
+        print('Getting Dependancies, Please Wait')
+        get_browser()
+        downloadpath=cwd+'\\'+browser+'.zip'
+        time.sleep(5)
+        os.remove(downloadpath)
+        print('Saving Config File, Please wait')
+        time.sleep(5)
 def set_config():
     print('Checking for settings file, please wait')
     operating_system=sys.platform
-    if operating_system == 'darwin' or operating_system == 'linux2' or sys.platform == 'liux':
+    if operating_system == 'darwin' or operating_system == 'linux2' or operating_system == 'linux':
         setting_file=path+'/MVSettings.ini'
-    elif sys.platform == 'win32' or operating_system == 'windows':
+    elif operating_system == 'win32' or operating_system == 'windows':
         setting_file=path+'\\MVSettings.ini'
     if os.path.exists(setting_file):
         get_config()
@@ -140,13 +202,25 @@ def get_browser():
                 zip_ref.extractall(os.getcwd()+'\\')
         print('unzip completed')
 def get_sales():
+    if sys.platform == 'darwin':
+        try:
+            os.makedirs(os.path.expanduser('~/Documents/MV_Sales'))
+            print('MV Sales direcrory created in documents folder')
+        except:
+            pass
+        path=os.path.expanduser('~/Documents/MV_Sales/') 
+    elif sys.platform == 'win32':
+        path=os.getcwd()
     config=get_config()
     username=config[0]
     paswd=config[1]
     fa=config[2]
     browser=config[3]
     print('Browser is: ',browser)
-    print('Logging in as '+username)
+    print('Continue as Manyvids User?',username,' (y/n) \nNOTE:Enter "n" if you need to change your password, username or enable the 2fa option')
+    chuser=input()
+    if chuser == 'n' or chuser =='N' or chuser =='No' or chuser == 'no' or chuser=='NO':
+        update_config()
     print("Get sales for this month or previous?")
     print("Press 1 for this month")
     print("press 2 for previous month")
@@ -253,14 +327,16 @@ def get_sales():
             sales_data=(sdate,amount,promocode,bought,username)
             sales.append(sales_data)
     print(len(sales), 'sales in list')
-    with open(month+'_MV_Sales.csv', 'w') as f:
+    with open(path+month+'_MV_Sales.csv', 'w') as f:
         write = csv.writer(f)
         write.writerow(fields)
         i=0
         for s in sales:
             write.writerows(sales)
             i+=1
-    print('Sale Export Complete.')
+        print('Sale Export Complete. Csv saved to: ',path)
+        
+
     bot.close()
 def welcome():
     print('##################################################################################')
