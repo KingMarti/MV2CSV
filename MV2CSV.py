@@ -84,9 +84,9 @@ def update_config():
     print('Do You Have 2fa Enabled? (Y/N)')
     confirm=input()
     if confirm == "y" or confirm == 'Y' or confirm == 'yes' or confirm == 'Yes' or confirm =="YES":
-        fa=True
+        fa='Y'
     elif confirm=="no" or confirm=="No" or confirm=="N"or confirm == 'n':
-        fa=False
+        fa='N'
     else:
         print('Invalid Selection, Please Restrart App')
         time.sleep(120)
@@ -148,9 +148,9 @@ def set_config():
         print('Do You Have 2fa Enabled? (Y/N)')
         confirm=input()
         if confirm == "y" or confirm == 'Y' or confirm == 'yes' or confirm == 'Yes' or confirm =="YES":
-            fa=True
+            fa='Y'
         elif confirm=="no" or confirm=="No" or confirm=="N"or confirm == 'n':
-            fa=False
+            fa='N'
         else:
             print('Invalid Selection, Please Restrart App')
             time.sleep(120)
@@ -282,11 +282,11 @@ def get_sales():
     password.clear()
     email.send_keys(username)
     password.send_keys(paswd)
-    if fa == True:
-        print('Please enter your 2fa code on the Manyvids website and press any key to continue')
+    time.sleep(1)
+    password.send_keys(Keys.RETURN)
+    if fa == 'Y':
+        print('Please enter your 2fa code on the Manyvids website and press ENTER key to continue')
         resume=input()
-    else:
-        password.send_keys(Keys.RETURN)
     print('Waiting for page to load')
     time.sleep(3)
     url='https://manyvids.com/View-my-earnings/#recentSalesBody'
@@ -334,14 +334,13 @@ def get_sales():
             os.makedirs(path+'\MV_Sales\\')
         except:
             pass
-        path=path+'\\MV_Sales\\'
-    with open(path+month+'_MV_Sales.csv', 'w') as f:
+        today=str(date.today().strftime('%d'))
+        path=path+'\\MV_Sales\\'+today+'_'+month+'_MV_Sales.csv'
+    with open(path, 'w') as f:
         write = csv.writer(f)
         write.writerow(fields)
-        i=0
-        for s in sales:
-            write.writerows(sales)
-            i+=1
+        write.writerows(sales)
+        
     print('Sale Export Complete. Csv saved to: ',path)
     
         
