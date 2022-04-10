@@ -26,7 +26,7 @@ except ImportError:
     try:
         import subprocess
         print('Installing Python dependancies')
-        packages=['solenium','cryptocode']
+        packages=['selenium','cryptocode']
         for package in packages:
             try:
                 print('installing ',package)
