@@ -1,3 +1,4 @@
+#!python3
 import configparser
 import csv
 import time
@@ -10,7 +11,10 @@ import random
 import string
 from datetime import date
 from getpass import getpass, getuser
-import ctypes.wintypes
+import ssl
+import certifi
+if sys.platform =='win32':
+    import ctypes.wintypes
 try:
     from selenium import webdriver
     from selenium.webdriver.common.keys import Keys
@@ -19,14 +23,17 @@ try:
     from selenium.webdriver.common.by import By
     from selenium.common.exceptions import NoSuchElementException
     from selenium.webdriver.firefox.options import Options
+    from selenium.webdriver.chrome import options
+    from selenium.webdriver.chrome.service import Service
+    from selenium.webdriver.firefox.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
     import cryptocode
 except ImportError:
     print('Installing Required Dependancies')
-    import sys
     try:
         import subprocess
         print('Installing Python dependancies')
-        packages=['selenium','cryptocode']
+        packages=['selenium','cryptocode','webdriver_manager']
         for package in packages:
             try:
                 print('installing ',package)
@@ -40,6 +47,20 @@ except ImportError:
                 print('pip installed')
                 print('installing required dependancies')
                 subprocess.check_call([sys.executable, "-m", "pip", "install",package])
+        try:
+            from selenium import webdriver
+            from selenium.webdriver.common.keys import Keys
+            from selenium.webdriver.support.ui import WebDriverWait
+            from selenium.webdriver.support import expected_conditions as EC
+            from selenium.webdriver.common.by import By
+            from selenium.common.exceptions import NoSuchElementException
+            from selenium.webdriver.firefox.options import Options
+            from selenium.webdriver.chrome import options
+            from selenium.webdriver.chrome.service import Service
+            from webdriver_manager.chrome import ChromeDriverManager
+            import cryptocode
+        except ImportError:
+            print('Dependancy import faild, please re-run the script or contact KingMarti if the problem continues')
 
     except:
         print('failed to install dependancies')
@@ -48,7 +69,14 @@ path=os.getcwd()
 def update_config():
     operating_system=sys.platform
     if operating_system == 'darwin' or operating_system == 'linux2' or operating_system == 'linux':
-        setting_file=path+'/MVSettings.ini'
+        try:
+            os.makedirs(os.path.expanduser('~/Documents/MV_Sales_Settings'))
+            print('MV Settings direcrory created in documents folder')
+        except:
+            pass
+        settings_path=os.path.expanduser('~/Documents/MV_Sales_Settings/') 
+        setting_file=settings_path+'/MVSettings.ini'
+        
     elif operating_system == 'win32' or operating_system == 'windows':
         setting_file=path+'\\MVSettings.ini'
     if os.path.exists(setting_file):
@@ -57,9 +85,21 @@ def update_config():
     print('Now Loading First Run Setup')
     print('These settings will only be asked for on the first run.')
     if operating_system=='darwin'or operating_system=='Darwin':
-        print('Operating system is:', operating_system)
-        browser='safari'
-        wdriver='y'
+       # print('Operating system is:', operating_system)
+        print('Safari is no longer supported')
+        print('Do you have firefox installed on your system?')
+        ff=input()
+        if ff=='n' or ff=='N' or ff== 'no' or ff=='No':
+            print('Do You have Google Chrome installed on your system?(y/n)')
+            gchome=input()
+            if gchome == 'y' or gchome == 'Y' or gchome == 'Yes' or gchome == 'yes':
+                browser='chrome'
+            elif gchome == 'n' or gchome =='N' or gchome =='No' or gchome =='no':
+                print('please install either google chrome or firefox to use this tool')
+            else:
+                print('Invalid Selection')
+        elif ff =='y' or ff=='Y' or ff=='Yes' or ff=='yes':
+            browser='firefox'
     elif operating_system=='windows' or operating_system=='Windows' or operating_system=='win32':
             print('Do you have firefox installed on your system?')
             ff=input()
@@ -99,15 +139,26 @@ def update_config():
     config['MV_Settings'] = {'username':username,'hash': cipher,'seed':seed,'2fa':fa,'browser':browser}
     with open('MVSettings.ini', 'w') as configfile:
         config.write(configfile)
-    if browser == 'chrome' or browser=='firefox':
-        cwd=os.getcwd()
-        print('Getting Dependancies, Please Wait')
-        get_browser()
-        downloadpath=cwd+'\\'+browser+'.zip'
-        time.sleep(5)
-        os.remove(downloadpath)
-        print('Saving Config File, Please wait')
-        time.sleep(5)
+    if sys.platform == 'win32':
+        if browser == 'chrome' or browser=='firefox':
+            cwd=os.getcwd()
+            print('Getting Dependancies, Please Wait')
+            get_browser()
+            downloadpath=cwd+'\\'+browser+'.zip'
+            time.sleep(5)
+            os.remove(downloadpath)
+            print('Saving Config File, Please wait')
+            time.sleep(5)
+    elif sys.platform =='darwin':
+        if browser == 'chrome' or browser=='firefox':
+            cwd=os.path.expanduser('~/Documents/MV_Sales_Settings')
+            print('Getting Dependancies, Please Wait')
+            get_browser()
+            downloadpath=cwd+'/'+browser+'.zip'
+            time.sleep(5)
+            os.remove(downloadpath)
+            print('Saving Config File, Please wait')
+            time.sleep(5)
 def set_config():
     print('Checking for settings file, please wait')
     operating_system=sys.platform
@@ -121,23 +172,21 @@ def set_config():
         print('Now Loading First Run Setup')
         print('These settings will only be asked for on the first run.')
         if operating_system=='darwin'or operating_system=='Darwin':
-            print('Operating system is:', operating_system)
-            browser='safari'
-            wdriver='y'
-        elif operating_system=='windows' or operating_system=='Windows' or operating_system=='win32':
-                print('Do you have firefox installed on your system?')
-                ff=input()
-                if ff=='n' or ff=='N' or ff== 'no' or ff=='No':
-                    print('Do You have Google Chrome installed on your system?(y/n)')
-                    gchome=input()
-                    if gchome == 'y' or gchome == 'Y' or gchome == 'Yes' or gchome == 'yes':
-                        browser='chrome'
-                    elif gchome == 'n' or gchome =='N' or gchome =='No' or gchome =='no':
-                        print('please install either google chrome or firefox to use this tool')
-                    else:
-                        print('Invalid Selection')
-                elif ff =='y' or ff=='Y' or ff=='Yes' or ff=='yes':
-                    browser='firefox'
+        # print('Operating system is:', operating_system)
+            print('Safari is no longer supported')
+            print('Do you have firefox installed on your system?')
+            ff=input()
+            if ff=='n' or ff=='N' or ff== 'no' or ff=='No':
+                print('Do You have Google Chrome installed on your system?(y/n)')
+                gchome=input()
+                if gchome == 'y' or gchome == 'Y' or gchome == 'Yes' or gchome == 'yes':
+                    browser='chrome'
+                elif gchome == 'n' or gchome =='N' or gchome =='No' or gchome =='no':
+                    print('please install either google chrome or firefox to use this tool')
+                else:
+                    print('Invalid Selection')
+            elif ff =='y' or ff=='Y' or ff=='Yes' or ff=='yes':
+                browser='firefox'
         elif operating_system=='linux'or operating_system=='Linux' or operating_system=='linux2':
             browser='firefox'
             print('linux support has not yet been implmented')
@@ -163,16 +212,26 @@ def set_config():
         config['MV_Settings'] = {'username':username,'hash': cipher,'seed':seed,'2fa':fa,'browser':browser}
         with open('MVSettings.ini', 'w') as configfile:
             config.write(configfile)
-        if browser == 'chrome' or browser=='firefox':
-            cwd=os.getcwd()
-            print('Getting Dependancies, Please Wait')
-            get_browser()
-            downloadpath=cwd+'\\'+browser+'.zip'
-            time.sleep(5)
-            os.remove(downloadpath)
-            print('Saving Config File, Please wait')
-            time.sleep(5)
-        
+        if sys.platform =='win32':
+            if browser == 'chrome' or browser=='firefox':
+                cwd=os.getcwd()
+                print('Getting Dependancies, Please Wait')
+                get_browser()
+                downloadpath=cwd+'\\'+browser+'.zip'
+                time.sleep(5)
+                os.remove(downloadpath)
+                print('Saving Config File, Please wait')
+                time.sleep(5)
+        if sys.platform =='darwin':
+            if browser == 'chrome' or browser=='firefox':
+                cwd=os.getcwd()
+                print('Getting Dependancies, Please Wait')
+                get_browser()
+                downloadpath=path+'/'+browser+'.zip'
+                time.sleep(5)
+                os.remove(downloadpath)
+        print('Saving Config File, Please wait')
+        time.sleep(5)
 def get_config():
     config = configparser.ConfigParser()
     config.sections()
@@ -189,18 +248,47 @@ def get_browser():
         config=get_config()
         browser=config[3]
         print(browser)
-        if browser == 'chrome':
-            downloadpath=os.getcwd()+'\\chrome.zip'
-            print('downloading file')
-            urllib.request.urlretrieve('https://chromedriver.storage.googleapis.com/100.0.4896.60/chromedriver_win32.zip',downloadpath)
-            with zipfile.ZipFile(downloadpath,'r') as zip_ref:
-                zip_ref.extractall(os.getcwd()+'\\')
-        elif browser == 'firefox':
-            downloadpath=os.getcwd()+'\\firefox.zip'
-            urllib.request.urlretrieve('https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-win64.zip',downloadpath)
-            with zipfile.ZipFile(downloadpath,'r') as zip_ref:
-                zip_ref.extractall(os.getcwd()+'\\')
-        print('unzip completed')
+        if sys.platform == 'win32':
+            if browser == 'chrome':
+                downloadpath=os.getcwd()+'\\chrome.zip'
+                print('downloading file')
+                urllib.request.urlretrieve('https://chromedriver.storage.googleapis.com/100.0.4896.60/chromedriver_win32.zip',downloadpath)
+                with zipfile.ZipFile(downloadpath,'r') as zip_ref:
+                    zip_ref.extractall(os.getcwd()+'\\')
+                    print('unzip completed')
+            elif browser == 'firefox':
+                downloadpath=os.getcwd()+'\\firefox.zip'
+                urllib.request.urlretrieve('https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-win64.zip',downloadpath)
+                with zipfile.ZipFile(downloadpath,'r') as zip_ref:
+                    zip_ref.extractall(os.getcwd()+'\\')
+                    print('unzip completed')
+        if sys.platform =='darwin':
+            try:
+                os.makedirs(os.path.expanduser('~/Documents/MV_Sales_Settings'))
+                print('Settings direcrory created in documents folder')
+            except:
+                pass
+            settings=os.path.expanduser('~/Documents/MV_Sales_Settings/')
+             
+            if browser == 'chrome':
+                downloadpath=settings+'chrome.zip'
+                print('downloading file')
+                ssl._create_default_https_context=ssl._create_unverified_context
+                urllib.request.urlretrieve('https://chromedriver.storage.googleapis.com/101.0.4951.15/chromedriver_mac64.zip',downloadpath)
+                with zipfile.ZipFile(downloadpath,'r') as zip_ref:
+                    zip_ref.extractall(settings+'/')
+                    print('unzip completed')
+                os.chmod(settings+'chromedriver',755)
+            elif browser == 'firefox':
+                import tarfile
+                downloadpath=settings+'firefox.zip'
+                ssl._create_default_https_context=ssl._create_unverified_context
+                urllib.request.urlretrieve('https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-macos.tar.gz',downloadpath)
+                geko=tarfile.open(downloadpath)
+                geko.extractall(settings)
+                geko.close()
+                print('unzip completed')
+                
 def get_sales():
     if sys.platform == 'darwin':
         try:
@@ -242,7 +330,7 @@ def get_sales():
             month=monthin
     else:
         print('Invalid Selection, Please Restrart')
-    if sys.platform != 'darwin':
+    if browser !='safari':
         print('Show the browser?(Y/N) \nNOTE: Show browser must be Y when using 2fa')
         use_browser=input()
         if use_browser == 'y' or use_browser == 'Yes' or use_browser =='Y' or use_browser == 'yes':
@@ -260,19 +348,28 @@ def get_sales():
                 from selenium.webdriver.chrome.options import Options
                 options = Options()
                 options.add_argument('--headless')
-                options.add_argument('--disable-gpu') 
             else:
                 print("Invalid Selection, Please Restart")
                 time.sleep(120)
                 exit()
     print('Starting Browser, Please wait')
-    if browser == 'firefox':
-        bot = webdriver.Firefox(options=headOption,executable_path=path+'\\geckodriver.exe',service_log_path=path+'\\geckodriver.log')
-    elif browser == 'chrome':
-        bot = webdriver.Chrome(chrome_options=options,executable_path=path+'\\chromedriver.exe',service_log_path=path+'\\log.txt')
-        bot.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-    elif browser == 'safari':
-        bot = webdriver.Safari(executable_path='/usr/bin/safaridriver')
+    if sys.platform == 'win32':
+        if browser == 'firefox':
+            bot = webdriver.Firefox(options=headOption,executable_path=path+'\\geckodriver.exe',service_log_path=path+'\\geckodriver.log')
+        elif browser == 'chrome':
+            options.add_argument('--disable-gpu') 
+            bot = webdriver.Chrome(chrome_options=options,executable_path=path+'\\chromedriver.exe',service_log_path=path+'\\log.txt')
+            bot.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+    elif sys.platform =='darwin':
+        settings_path=os.path.expanduser('~/Documents/MV_Sales_Settings/')
+        if browser =='firefox':
+            bot = webdriver.Firefox(options=headOption,executable_path=settings_path+'/geckodriver',service_log_path=path+'/geckodriver.log')
+        elif browser == 'chrome':
+            options.add_argument('--disable-gpu') 
+            bot = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=options)
+            #bot.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        elif browser == 'safari':
+            bot = webdriver.Safari(executable_path='/usr/bin/safaridriver')
     url=bot.get('https://www.manyvids.com/Login/')
     time.sleep(3)
     print('waiting for login page to load')
@@ -285,8 +382,11 @@ def get_sales():
     time.sleep(1)
     password.send_keys(Keys.RETURN)
     if fa == 'Y':
-        print('Please enter your 2fa code on the Manyvids website and press ENTER key to continue')
-        resume=input()
+        print('Please enter your 2fa code here and press ENTER to continue.')
+        confa=input()
+        fain=bot.find_element(By.NAME,'twoway_authentication_code').send_keys(confa)
+        bot.find_element(By.CLASS_NAME,'js-submit-confirm-2way').click()
+        
     print('Waiting for page to load')
     time.sleep(3)
     url='https://manyvids.com/View-my-earnings/#recentSalesBody'
@@ -334,9 +434,10 @@ def get_sales():
             os.makedirs(path+'\MV_Sales\\')
         except:
             pass
-        today=str(date.today().strftime('%d'))
-        path=path+'\\MV_Sales\\'+today+'_'+month+'_MV_Sales.csv'
-    with open(path, 'w') as f:
+        path=path+'\\MV_Sales\\'
+    today=str(date.today().strftime('%d'))
+    filename=today+'_'+month+'_MV_Sales.csv'
+    with open(path+filename, 'w') as f:
         write = csv.writer(f)
         write.writerow(fields)
         write.writerows(sales)
